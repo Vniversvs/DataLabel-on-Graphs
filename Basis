@@ -1,0 +1,134 @@
+import networkx as nx
+
+###### TODO
+
+
+
+
+
+######
+
+
+#### IDEIAS
+
+
+
+####
+
+class Material_Rotulo:
+    def __init__(self, Nome, Graph):
+        self.Nome = Nome
+        self.Graph = Graph
+        self.rotulo = {}
+        self.iniciar_rotulo()
+
+    def iniciar_rotulo(self):
+        for ponto in self.Graph.nodes:
+            self.rotulo[ponto] = [0, 0, 0]
+        for elo in self.Graph.edges:
+            self.rotulo[elo] = 0
+    ###rotulo do ponto = (p, q, c); p = produção por tempo, q = quantos do material o ponto possui
+    ### c = consumo do ponto
+
+    ###rotulo do elo = t; t = quanto está sendo transferido da cauda do elo até a cabeça do elo neste tempo
+
+    def check_transferabilidade(self, elo):
+        if self.rotulo[elo[0]][1] >= self.rotulo[elo]:
+            return True
+        return False
+
+    def mudar_quantidade_ponto(self, ponto, quantidade):
+        if ponto in self.Graph.nodes:
+            self.rotulo[ponto][1]+=quantidade
+    def mudar_producao_ponto(self, ponto, quantidade):
+        if ponto in self.Graph.nodes:
+            self.rotulo[ponto][0]+=quantidade
+    def mudar_consumo_ponto(self, ponto, quantidade):
+        if ponto in self.Graph.nodes:
+            self.rotulo[ponto][2]+=quantidade
+
+
+    def mudar_transferencia_elo(self, elo, x):
+        if elo in self.Graph.edges:
+            self.rotulo[elo] += x
+
+    def transferir_elo(self, elo):
+        if self.rotulo(elo[0]) >= self.rotulo(elo):
+        # if self.check_transferabilidade(elo) == True:
+            self.mudar_rotuloponto(elo[0], [0, -self.rotulo[elo]])
+            self.mudar_rotuloponto(elo[1], [0, self.rotulo[elo]])
+            self.rotulo[elo] = 0
+        else:
+            self.mudar_rotuloponto(elo[0], [0, -self.rotulo[elo[0]][1]])
+            self.mudar_rotuloponto(elo[1], [0, self.rotulo[elo[0]][1]])
+            self.rotulo[elo] -= self.rotulo[elo[0]][1]
+
+    def produzir_ponto(self, ponto):
+        self.rotulo[ponto][1] += self.rotulo[ponto][0]
+        self.rotulo[ponto][0]=0
+    def consumir_ponto(self, ponto):
+        self.rotulo[ponto][1]-=self.rotulo[ponto][2]
+        self.rotulo[ponto][2]=0
+        if self.rotulo[ponto][1]<0:
+            self.rotulo[ponto][1]=0
+
+    def transferencia_global(self):
+        viagem = {}
+        for elo in self.Graph.edges:
+            viagem[elo] = min(self.rotulo[elo[0]], self.rotulo[elo])
+            self.rotulo[elo[0]][1]-=min(self.rotulo[elo[0]], self.rotulo[elo])
+        for elo in self.Graph.edges:
+            self.rotulo[elo[1]][1]+=viagem[elo]
+
+        #     quantidade_para_transferir = min(self.rotulo[elo[0]], self.rotulo[elo])
+        #     if self.rotulo[elo]>self.rotulo[elo[0]][1]:
+        #         self.rotulo[elo[0]][1]=0
+        #     else:    self.rotulo.elo[0][1]-=self.rotulo[elo]
+        # self.rotulo[elo[1]][1]+=quantidade_para_transferir
+
+
+    def iterar_tempo(self):
+        self.transferencia_global()
+        for ponto in self.Graph.nodes:
+            self.consumir_ponto(ponto)
+        for ponto in self.Graph.nodes:
+            self.produzir_ponto(ponto)
+
+
+X = nx.DiGraph()
+
+edg = [(i,i+1) for i in range(0, 6)]
+X.add_edges_from(edg)
+
+Madeira = Material_Rotulo("Madeira", X)
+
+# print(Madeira.rotulo)
+
+
+
+
+
+
+####testes
+
+
+
+
+# print(Madeira.rotulo[1])
+# Madeira.mudar_producao_ponto(1, 5)
+# print(Madeira.rotulo[1])
+# Madeira.produzir_ponto(1)
+# print(Madeira.rotulo[1])
+
+
+# print(Madeira.rotulo[1])
+# Madeira.mudar_rotuloponto(1, (0, 5))
+# print(Madeira.rotulo[1])
+# print(Madeira.rotulo[(1, 2)])
+# Madeira.mudar_rotuloelo((1, 2), 3)
+# print(Madeira.rotulo[(1, 2)])
+# Madeira.transferir_por_elo((1, 2))
+# print(Madeira.rotulo[(1, 2)])
+# print(Madeira.rotulo[1])
+
+####
